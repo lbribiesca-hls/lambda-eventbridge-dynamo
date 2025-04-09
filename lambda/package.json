@@ -1,0 +1,11 @@
+{
+    "name": "lambda-eventbridge-dynamo",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "dependencies": {
+      "@aws-sdk/client-dynamodb": "^3.470.0",
+      "uuid": "^9.0.0"
+    }
+  }
+  
