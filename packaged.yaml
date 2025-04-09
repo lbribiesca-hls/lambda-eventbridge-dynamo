@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda conectada a EventBridge y DynamoDB
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Default: HelloEventBridgeFunction
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaEventBridgeDynamoRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: LambdaDynamoPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:PutItem
+            Resource:
+              Fn::GetAtt:
+              - EventTable
+              - Arn
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'
+  EventTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: LambdaEvents
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName:
+        Ref: LambdaFunctionName
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: EventTable
+      Code:
+        ZipFile: placeholder
+  EventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: LambdaEventRule
+      ScheduleExpression: rate(1 minute)
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::GetAtt:
+          - LambdaFunction
+          - Arn
+        Id: LambdaTarget
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - EventBridgeRule
+        - Arn
