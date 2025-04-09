@@ -8,6 +8,12 @@ Este proyecto despliega una arquitectura Serverless en AWS con:
 - 🏗️ CloudFormation: infraestructura como código
 - 🔁 Automatización: scripts para despliegue y destrucción total
 
+# Ejecución rápida (copiar y pegar)
+git clone https://github.com/lbribiesca-hls/lambda-eventbridge-dynamo.git
+cd lambda-eventbridge-dynamo
+chmod +x build.sh destroy.sh
+./build.sh
+
 ## 📁 Estructura del proyecto
 
 ```
